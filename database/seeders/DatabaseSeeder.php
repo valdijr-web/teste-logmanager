@@ -15,12 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        User::factory()->create([
-            'name' => 'Log Manager',
-            'email' => 'logmanager@logmanager.com.br',
-            'password' => Hash::make('12345678'),
-        ]);
         $this->call([
+            UserSeeder::class,
             DriverOrderSeeder::class,
         ]);
     }
