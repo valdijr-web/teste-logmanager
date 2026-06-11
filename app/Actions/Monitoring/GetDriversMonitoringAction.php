@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Actions\Monitoring;
+
+use App\Models\Driver;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+
+class GetDriversMonitoringAction
+{
+    public function execute(array $filters = []): LengthAwarePaginator
+    {
+        $query = Driver::query()
+            ->select('id', 'name');
+
+        $query->withCount([
+            'orders' => function (Builder $q) use ($filters) {
+                $q->when($filters['start_date'] ?? null, fn($subQ, $start) => $subQ->whereDate('created_at', '>=', $start))
+                    ->when($filters['end_date'] ?? null, fn($subQ, $end) => $subQ->whereDate('created_at', '<=', $end));
+            },
+            'orders as delivered_orders_count' => function (Builder $q) use ($filters) {
+                $q->where('status', 'Entregue')
+                    ->whereNotNull('delivered_at')
+                    ->when($filters['start_date'] ?? null, fn($subQ, $start) => $subQ->whereDate('created_at', '>=', $start))
+                    ->when($filters['end_date'] ?? null, fn($subQ, $end) => $subQ->whereDate('created_at', '<=', $end));
+            }
+        ]);
+
+        $query->when($filters['status'] ?? null, function (Builder $q, $status) {
+            switch ($status) {
+                case 'completed':
+                    $q->havingRaw("orders_count > 0 AND orders_count = delivered_orders_count");
+                    break;
+                case 'almost_done':
+                    $q->havingRaw("orders_count > 0 AND (delivered_orders_count * 2) > orders_count AND delivered_orders_count < orders_count");
+                    break;
+                case 'alert':
+                    $q->havingRaw("orders_count > 0 AND (delivered_orders_count * 2) <= orders_count");
+                    break;
+                case 'all':
+                default:
+                    break;
+            }
+        });
+
+        $sortBy = $filters['sort_by'] ?? 'name';
+        $sortDirection = $filters['sort_direction'] ?? 'asc';
+        $query->orderBy($sortBy, $sortDirection);
+
+        $perPage = $filters['per_page'] ?? 10;
+        $page = $filters['page'] ?? 1;
+
+        return $query->paginate($perPage, ['*'], 'page', $page);
+    }
+}
