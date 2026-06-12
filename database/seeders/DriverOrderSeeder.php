@@ -15,54 +15,59 @@ class DriverOrderSeeder extends Seeder
      */
     public function run()
     {
-        // Cenário 1: Concluído - 100% entregue
-        $completedDriver = Driver::factory()->create([
-            'name' => 'Carlos Silva',
-        ]);
+        $totalPerScenario = 10;
 
-        Order::factory()
-            ->count(5)
-            ->delivered()
-            ->create([
-                'driver_id' => $completedDriver->id,
-            ]);
+        // Cenário 1: Concluído - 100% entregue
+        Driver::factory()
+            ->count($totalPerScenario)
+            ->create()
+            ->each(function (Driver $driver) {
+                Order::factory()
+                    ->count(5)
+                    ->delivered()
+                    ->create([
+                        'driver_id' => $driver->id,
+                    ]);
+            });
 
         // Cenário 2: Próximo de terminar - mais de 50% entregue
-        $almostDoneDriver = Driver::factory()->create([
-            'name' => 'Marcos Oliveira',
-        ]);
+        Driver::factory()
+            ->count($totalPerScenario)
+            ->create()
+            ->each(function (Driver $driver) {
+                Order::factory()
+                    ->count(4)
+                    ->delivered()
+                    ->create([
+                        'driver_id' => $driver->id,
+                    ]);
 
-        Order::factory()
-            ->count(4)
-            ->delivered()
-            ->create([
-                'driver_id' => $almostDoneDriver->id,
-            ]);
-
-        Order::factory()
-            ->count(2)
-            ->pending()
-            ->create([
-                'driver_id' => $almostDoneDriver->id,
-            ]);
+                Order::factory()
+                    ->count(2)
+                    ->pending()
+                    ->create([
+                        'driver_id' => $driver->id,
+                    ]);
+            });
 
         // Cenário 3: Em alerta - 50% ou menos entregue
-        $alertDriver = Driver::factory()->create([
-            'name' => 'João Pereira',
-        ]);
+        Driver::factory()
+            ->count($totalPerScenario)
+            ->create()
+            ->each(function (Driver $driver) {
+                Order::factory()
+                    ->count(2)
+                    ->delivered()
+                    ->create([
+                        'driver_id' => $driver->id,
+                    ]);
 
-        Order::factory()
-            ->count(2)
-            ->delivered()
-            ->create([
-                'driver_id' => $alertDriver->id,
-            ]);
-
-        Order::factory()
-            ->count(4)
-            ->pending()
-            ->create([
-                'driver_id' => $alertDriver->id,
-            ]);
+                Order::factory()
+                    ->count(4)
+                    ->pending()
+                    ->create([
+                        'driver_id' => $driver->id,
+                    ]);
+            });
     }
 }
