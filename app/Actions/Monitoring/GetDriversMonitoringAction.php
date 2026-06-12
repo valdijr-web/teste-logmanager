@@ -50,6 +50,23 @@ class GetDriversMonitoringAction
         $perPage = $filters['per_page'] ?? 10;
         $page = $filters['page'] ?? 1;
 
-        return $query->paginate($perPage, ['*'], 'page', $page);
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return $paginator->through(function ($driver) {
+            $total = (int) $driver->orders_count;
+            $delivered = (int) $driver->delivered_orders_count;
+
+            if ($total > 0 && $total === $delivered) {
+                $driver->row_color = 'table-success';
+            } elseif ($total > 0 && ($delivered * 2) > $total && $delivered < $total) {
+                $driver->row_color = 'table-warning';
+            } elseif ($total > 0 && ($delivered * 2) <= $total) {
+                $driver->row_color = 'table-danger';
+            } else {
+                $driver->row_color = 'table-light';
+            }
+
+            return $driver;
+        });
     }
 }
