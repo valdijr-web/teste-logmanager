@@ -122,3 +122,35 @@ tr.text-info th {
     border-color: #1C3FAA;
     opacity: 0.65;
 }
+
+
+
+.lightpick-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid #eee;
+}
+
+.lightpick__select {
+    border: 1px solid #dee2e6;
+    border-radius: 0;
+    padding: 6px 28px 6px 10px;
+    background-color: #fff;
+    font-size: 13px;
+    color: #343a40;
+    min-width: 74px;
+}
+
+.lightpick__month-title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.lightpick__month-title {
+    display: flex;
+    gap: 8px;
+}
+

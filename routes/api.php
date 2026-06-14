@@ -20,5 +20,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('v1')->group(function () {
-    Route::get('drivers-monitoring', [DriverMonitoringController::class, 'index']);
+    Route::get('drivers', [DriverMonitoringController::class, 'index']);
 });

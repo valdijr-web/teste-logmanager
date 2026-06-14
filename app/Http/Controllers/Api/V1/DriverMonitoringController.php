@@ -16,6 +16,7 @@ class DriverMonitoringController extends Controller
             'end_date' => $request->input('end_date'),
             'status' => $request->input('status', 'all'),
             'per_page' => $request->input('per_page', 10),
+            'page' => $request->input('page'),
         ]);
 
         return response()->json($drivers);
