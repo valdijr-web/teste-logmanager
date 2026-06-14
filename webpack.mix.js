@@ -12,7 +12,7 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/assets/js')
-    .js('resources/js/drivers/index.js', 'public/assets/js/drivers')
+    .js('resources/js/drivers/drivers-list.js', 'public/assets/js/drivers')
     .postCss('resources/css/app.css', 'public/assets/css', [
         //
     ]);

@@ -94,58 +94,41 @@ document.addEventListener('DOMContentLoaded', function () {
   var datePeriodInput = document.getElementById('date_period');
   var perPageSelect = document.getElementById('perPage');
   var refreshButton = document.getElementById('refreshDriversButton');
-  var picker = new Lightpick({
-    field: datePeriodInput,
-    singleDate: false,
-    numberOfMonths: 1,
-    numberOfColumns: 1,
-    format: 'DD/MM/YYYY',
-    separator: ' - ',
-    autoclose: false,
-    lang: 'pt-BR',
-    dropdowns: {
-      months: true,
-      years: {
-        min: 2020,
-        max: 2035
-      }
-    },
-    onSelect: function onSelect(start, end) {
-      if (start && end) {
-        datePeriodInput.value = "".concat(start.format('DD/MM/YYYY'), " - ").concat(end.format('DD/MM/YYYY'));
-      }
-    },
-    onClose: function onClose() {
-      fetchDrivers(1);
+  $('#date_period').daterangepicker({
+    showDropdowns: true,
+    linkedCalendars: false,
+    autoApply: false,
+    autoUpdateInput: false,
+    opens: 'right',
+    drops: 'down',
+    locale: {
+      format: 'DD/MM/YYYY',
+      separator: ' - ',
+      applyLabel: 'Aplicar',
+      cancelLabel: 'Cancelar',
+      customRangeLabel: 'Personalizado',
+      weekLabel: 'S',
+      daysOfWeek: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+      monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+      firstDay: 0
     }
   });
-  datePeriodInput.addEventListener('click', function () {
-    setTimeout(function () {
-      addLightpickButtons(picker, datePeriodInput);
-    }, 50);
+  $('#date_period').on('show.daterangepicker', function (ev, picker) {
+    var applyButton = $(picker.container).find('.applyBtn');
+    var cancelButton = $(picker.container).find('.cancelBtn');
+    applyButton.removeClass('btn-primary').addClass('btn-link');
+    cancelButton.removeClass('btn-default btn-sm').addClass('btn btn-link');
   });
-  function addLightpickButtons(picker, input) {
-    var pickerElement = document.querySelector('.lightpick');
-    if (!pickerElement) {
-      return;
-    }
-    if (pickerElement.querySelector('.lightpick-actions')) {
-      return;
-    }
-    var actions = document.createElement('div');
-    actions.classList.add('lightpick-actions');
-    actions.innerHTML = "\n        <button type=\"button\" class=\"btn btn-link btn-sm\" id=\"datePeriodCancel\">\n            Cancelar\n        </button>\n\n        <button type=\"button\" class=\"btn btn-primary btn-sm\" id=\"datePeriodApply\">\n            Aplicar\n        </button>\n    ";
-    pickerElement.appendChild(actions);
-    document.getElementById('datePeriodCancel').addEventListener('click', function () {
-      input.value = '';
-      picker.hide();
-      fetchDrivers(1);
-    });
-    document.getElementById('datePeriodApply').addEventListener('click', function () {
-      picker.hide();
-      fetchDrivers(1);
-    });
-  }
+  $('#date_period').on('apply.daterangepicker', function (event, picker) {
+    var startDate = picker.startDate.format('DD/MM/YYYY');
+    var endDate = picker.endDate.format('DD/MM/YYYY');
+    this.value = "".concat(startDate, " - ").concat(endDate);
+    fetchDrivers(1);
+  });
+  $('#date_period').on('cancel.daterangepicker', function () {
+    this.value = '';
+    fetchDrivers(1);
+  });
   var currentPage = 1;
   function fetchDrivers() {
     return _fetchDrivers.apply(this, arguments);
@@ -207,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var status = statusSelect.value;
     var perPage = perPageSelect.value;
     var datePeriod = datePeriodInput.value;
-    console.log("TESTE ", datePeriodInput.value);
     params.append('page', page);
     params.append('per_page', perPage);
     if (status && status !== 'all') {

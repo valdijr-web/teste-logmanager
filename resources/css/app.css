@@ -1,124 +1,158 @@
+/* ==========================================================================
+   1. DESIGN TOKENS (VARIÁVEIS GLOBAIS)
+   ========================================================================== */
+:root {
+    /* Cores de Marca / Bootstrap Override */
+    --bs-primary: #1C3FAA;
+    --bs-primary-rgb: 28, 63, 170;
+    --bs-primary-hover: #172f9c;
+    --bs-primary-hover-rgb: 23, 47, 156;
+    --bs-primary-active: #122676;
+    --bs-primary-active-rgb: 18, 38, 118;
+
+    /* Links */
+    --bs-link-color: var(--bs-primary);
+    --bs-link-color-rgb: var(--bs-primary-rgb);
+    --bs-link-hover-color: var(--bs-primary-hover);
+    --bs-link-hover-color-rgb: var(--bs-primary-hover-rgb);
+
+    /* Cores Neutras Neutras (Centralizadas) */
+    --color-bg-main: #F1F5F8;
+    --color-text-main: #2D3748;
+    --color-text-muted: #4A5568;
+    --color-bg-muted: #EDF2F7;
+    --color-border: #DDE5ED;
+
+    /* Tipografia */
+    --font-sans: 'Roboto', sans-serif;
+}
+
+/* ==========================================================================
+   2. ESTILOS GLOBAIS / BASE (ELEMENTS)
+   ========================================================================== */
 body {
     display: flex;
-    min-height: 100vh;
     flex-direction: column;
-    background-color: #F1F5F8;
-    color: #2D3748;
-    font-family: 'Roboto', sans-serif;
+    min-height: 100vh;
+    background-color: var(--color-bg-main);
+    color: var(--color-text-main);
+    font-family: var(--font-sans);
 }
 
-body,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    color: #2D3748;
-    font-family: 'Roboto', sans-serif;
+h2, h3, h4, h5, h6 {
+    color: var(--color-text-main);
 }
 
-tr.text-primary td,
-tr.text-primary th,
-tr.text-secondary td,
-tr.text-secondary th,
-tr.text-success td,
-tr.text-success th,
-tr.text-danger td,
-tr.text-danger th,
-tr.text-warning td,
-tr.text-warning th,
-tr.text-info td,
-tr.text-info th {
-    color: #2D3748;
+table tbody {
+    color: var(--color-text-main) !important;
 }
 
-/* Container da paginação */
+table thead th {
+    color: var(--color-text-main) !important;
+    font-weight: 600 !important;
+}
+/* ==========================================================================
+   3. COMPONENTES DO CORE / CUSTOMIZADOS (BOOTSTRAP OVERRIDES)
+   ========================================================================== */
+.btn-link {
+    text-decoration: none;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: var(--bs-primary-hover);
+    --bs-btn-hover-border-color: var(--bs-primary-hover);
+    --bs-btn-active-bg: var(--bs-primary-active);
+    --bs-btn-active-border-color: var(--bs-primary-active);
+    --bs-btn-disabled-bg: var(--bs-primary);
+    --bs-btn-disabled-border-color: var(--bs-primary);
+}
+
+/* ==========================================================================
+   4. COMPONENTE: CUSTOM PAGINATION
+   ========================================================================== */
 .custom-pagination {
+    display: flex;
     gap: 1rem;
-    /* Cria o espaçamento horizontal entre os números */
     align-items: center;
 }
 
-/* Estilo base de todos os links/botões */
 .custom-pagination .page-item .page-link {
-    border: none;
-    /* Remove a borda padrão do Bootstrap */
-    background-color: transparent;
-    /* Remove o fundo padrão */
-    color: #4A5568;
-    /* Cor do texto cinza escuro dos números inativos */
-    font-weight: 500;
-    font-size: 14px;
-    padding: 0;
-    width: 2.5rem;
-    height: 2.3rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px !important;
-    /* Deixa os cantos arredondados como na foto */
+    width: 2.5rem;
+    height: 2.3rem;
+    padding: 0;
+    border: none;
+    border-radius: 12px;
+    background-color: transparent;
+    color: var(--color-text-muted);
+    font-size: 14px;
+    font-weight: 500;
     transition: all 0.2s ease-in-out;
 }
 
-/* Estado: Ativo (Página atual) */
 .custom-pagination .page-item.active .page-link {
-    background-color: #EDF2F7 !important;
-    /* Cor de fundo azulada bem suave */
-    color: #4A5568 !important;
-    /* Cor do número ativo */
+    background-color: var(--color-bg-muted);
+    color: var(--color-text-muted);
     font-weight: 600;
 }
 
-/* Estado: Hover (Passar o mouse nos botões disponíveis) */
 .custom-pagination .page-item:not(.active):not(.disabled) .page-link:hover {
     background-color: #f8fafc;
-    /* Um hover sutil para os outros números */
     color: #1e293b;
 }
 
-/* Setas de avançar e voltar (opcional: mudar cor ou tamanho) */
 .custom-pagination .page-item .page-link[aria-label] {
-    color: #2D3748;
+    color: var(--color-text-main);
     font-size: 1.3rem;
 }
 
-/* Estado: Desabilitado (ex: seta voltar na primeira página) */
 .custom-pagination .page-item.disabled .page-link {
+    background-color: transparent;
     opacity: 0.4;
-    background-color: transparent !important;
 }
 
-/* Remove o efeito de sombra (outline) azul padrão do Bootstrap ao focar */
 .custom-pagination .page-link:focus {
     box-shadow: none;
 }
 
-/* Botão personalizado usando a cor #1C3FAA */
-.btn-custom {
-    color: #ffffff;
-    background-color: #1C3FAA;
-    border-color: #1C3FAA;
+/* ==========================================================================
+   5. CUSTOMIZAÇÃO DE LIBS TERCEIRAS (DATERANGEPICKER)
+   ========================================================================== */
+.daterangepicker .drp-calendar.right,
+.daterangepicker .drp-selected {
+    display: none !important;
 }
 
-.btn-custom:hover,
-.btn-custom:focus {
-    color: #ffffff;
-    background-color: #172f9c;
-    border-color: #172f9c;
+.daterangepicker.ltr .ranges,
+.daterangepicker.ltr .drp-calendar {
+    float: none !important;
 }
 
-.btn-custom:active,
-.btn-custom.active,
-.show>.btn-custom.dropdown-toggle {
-    color: #ffffff;
-    background-color: #122676;
-    border-color: #122676;
+.daterangepicker .drp-calendar.left {
+    width: 100% !important;
 }
 
-.btn-custom.disabled,
-.btn-custom:disabled {
+.daterangepicker td.start-date.available,
+.daterangepicker td.end-date.available,
+.daterangepicker td.in-range.available {
+    background-color: var(--bs-primary);
     color: #ffffff;
-    background-color: #1C3FAA;
-    border-color: #1C3FAA;
-    opacity: 0.65;
+}
+.daterangepicker td.available:hover {
+    background-color: var(--bs-primary-hover) !important;
+    color: white !important;
+}
+
+
+.daterangepicker .monthselect,
+.daterangepicker .yearselect {
+    width: 50%;
+    height: 38px !important;
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    font-size: 14px;
 }

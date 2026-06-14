@@ -25,7 +25,7 @@
                             id="date_period"
                             name="date_period"
                             class="form-control form-control"
-                            placeholder="16/03/2026 - 18/03/2026">
+                            placeholder="filtrar por período">
                     </div>
 
                     <div class="col-md-3">
@@ -76,7 +76,7 @@
                     </ul>
                 </nav>
 
-                <button type="button" class="btn btn-custom btn-md" id="refreshDriversButton">
+                <button type="button" class="btn btn-primary btn-md" id="refreshDriversButton">
                     Atualizar
                 </button>
             </div>
@@ -108,5 +108,5 @@
 @endsection
 
 @section('scripts')
-<script src="{{ mix('assets/js/drivers/index.js') }}"></script>
+<script src="{{ mix('assets/js/drivers/drivers-list.js') }}"></script>
 @endsection
