@@ -18,10 +18,14 @@ class Order extends Model
         'delivery_address',
         'status',
         'delivered_at',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
         'delivered_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     public function driver()

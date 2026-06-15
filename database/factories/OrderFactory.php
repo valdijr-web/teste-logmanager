@@ -4,6 +4,8 @@ namespace Database\Factories;
 
 use App\Models\Driver;
 use App\Models\Order;
+use Carbon\Carbon;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class OrderFactory extends Factory
@@ -21,22 +23,31 @@ class OrderFactory extends Factory
             Order::STATUS_PENDING,
             Order::STATUS_DELIVERED,
         ]);
+
+        $createdAt = $this->resolveTimestamp();
+
         return [
             'driver_id' => Driver::factory(),
             'code' => strtoupper($this->faker->unique()->bothify('PED-####')),
             'delivery_address' => $this->faker->streetAddress,
             'status' => $status,
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
             'delivered_at' => $status === Order::STATUS_DELIVERED
-                ? $this->faker->dateTimeBetween('-30 days', 'now')
+                ? $createdAt
                 : null,
         ];
     }
 
-     public function pending()
+    public function pending()
     {
-        return $this->state(function () {
+        return $this->state(function (array $attributes) {
+            $createdAt = $this->resolveTimestamp($attributes['created_at'] ?? null);
+
             return [
                 'status' => Order::STATUS_PENDING,
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
                 'delivered_at' => null,
             ];
         });
@@ -44,11 +55,32 @@ class OrderFactory extends Factory
 
     public function delivered()
     {
-        return $this->state(function () {
+        return $this->state(function (array $attributes) {
+            $createdAt = $this->resolveTimestamp($attributes['created_at'] ?? null);
+
             return [
                 'status' => Order::STATUS_DELIVERED,
-                'delivered_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
+                'delivered_at' => $createdAt,
             ];
         });
+    }
+
+    protected function resolveTimestamp($value = null)
+    {
+        if ($value instanceof DateTimeInterface) {
+            return Carbon::instance($value);
+        }
+
+        if ($value !== null) {
+            return Carbon::parse($value);
+        }
+
+        return Carbon::now()
+            ->subDays($this->faker->numberBetween(0, 2))
+            ->subHours($this->faker->numberBetween(0, 23))
+            ->subMinutes($this->faker->numberBetween(0, 59))
+            ->subSeconds($this->faker->numberBetween(0, 59));
     }
 }
