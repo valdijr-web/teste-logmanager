@@ -6,7 +6,7 @@ Este projeto é um teste técnico para a LOGMANAGER desenvolvido em Laravel. Ele
 
 1. Clone o repositório:
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/valdijr-web/teste-logmanager.git
    cd teste-logmanager
    ```
 
