@@ -1,10 +1,13 @@
-export function renderOrdersTable(tableBody, orders) {
+export function renderOrdersTable(tableBody, orders, columns = { showStatus: true, showDeliveredDate: false }) {
     tableBody.innerHTML = ''
+
+    const showStatus = columns.showStatus
+    const showDeliveredDate = columns.showDeliveredDate
 
     if (!orders || orders.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="4" class="text-muted text-center">
+                <td colspan="3" class="text-muted text-center">
                     Nenhum pedido encontrado.
                 </td>
             </tr>
@@ -21,12 +24,20 @@ export function renderOrdersTable(tableBody, orders) {
         const addressCell = document.createElement('td')
         addressCell.textContent = order.delivery_address
 
-        const statusCell = document.createElement('td')
-        statusCell.textContent = order.status
-
         row.appendChild(codeCell)
         row.appendChild(addressCell)
-        row.appendChild(statusCell)
+
+        if (showStatus) {
+            const statusCell = document.createElement('td')
+            statusCell.textContent = order.status
+            row.appendChild(statusCell)
+        }
+
+        if (showDeliveredDate) {
+            const deliveredAtCell = document.createElement('td')
+            deliveredAtCell.textContent = order.delivered_at ? new Date(order.delivered_at).toLocaleString('pt-BR') : '-'
+            row.appendChild(deliveredAtCell)
+        }
 
         tableBody.appendChild(row)
     })
@@ -35,7 +46,7 @@ export function renderOrdersTable(tableBody, orders) {
 export function renderLoading(tableBody) {
     tableBody.innerHTML = `
         <tr>
-            <td colspan="4" class="text-muted text-center">
+            <td colspan="3" class="text-muted text-center">
                 Carregando...
             </td>
         </tr>
@@ -45,7 +56,7 @@ export function renderLoading(tableBody) {
 export function renderError(tableBody, message) {
     tableBody.innerHTML = `
         <tr>
-            <td colspan="4" class="text-danger text-center">
+            <td colspan="3" class="text-danger text-center">
                 ${message}
             </td>
         </tr>

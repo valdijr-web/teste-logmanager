@@ -125,6 +125,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 
 var ordersModal = document.getElementById('driverOrdersModal');
 var ordersModalTitle = document.getElementById('driverOrdersModalTitle');
+var ordersTableHead = document.getElementById('driverOrdersTableHead');
 var ordersTableBody = document.getElementById('driverOrdersTableBody');
 var ordersPagination = document.getElementById('driverOrdersPagination');
 var ordersPaginationInfo = document.getElementById('driverOrdersPaginationInfo');
@@ -152,9 +153,21 @@ function openDriverOrdersModal(driverId, driverName, orderType) {
   currentOrderType = orderType;
   currentFilters = filters;
   currentPage = 1;
-  ordersModalTitle.textContent = orderType === 'delivered' ? "Entregas de ".concat(driverName) : "Pedidos de ".concat(driverName);
+  var isDeliveryMode = orderType === 'delivered';
+  var columns = {
+    showStatus: !isDeliveryMode,
+    showDeliveredDate: isDeliveryMode
+  };
+  ordersModalTitle.textContent = isDeliveryMode ? "Entregas de ".concat(driverName) : "Pedidos de ".concat(driverName);
+  setOrdersTableHeader(columns);
   var modal = new bootstrap.Modal(ordersModal);
   modal.show();
+}
+function setOrdersTableHeader(columns) {
+  if (!ordersTableHead) {
+    return;
+  }
+  ordersTableHead.innerHTML = "\n        <th scope=\"col\">C\xF3digo</th>\n        <th scope=\"col\">Endere\xE7o</th>\n        ".concat(columns.showStatus ? '<th scope="col">Status</th>' : '', "\n        ").concat(columns.showDeliveredDate ? '<th scope="col">Entregue em</th>' : '', "\n    ");
 }
 function fetchOrders() {
   return _fetchOrders.apply(this, arguments);
@@ -162,6 +175,8 @@ function fetchOrders() {
 function _fetchOrders() {
   _fetchOrders = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
     var page,
+      isDeliveryMode,
+      columns,
       result,
       _args = arguments,
       _t;
@@ -176,17 +191,22 @@ function _fetchOrders() {
           return _context.a(2);
         case 1:
           currentPage = page;
+          isDeliveryMode = currentOrderType === 'delivered';
+          columns = {
+            showStatus: !isDeliveryMode,
+            showDeliveredDate: isDeliveryMode
+          };
           (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderLoading)(ordersTableBody);
           _context.p = 2;
           _context.n = 3;
           return (0,_api_drivers_api_js__WEBPACK_IMPORTED_MODULE_0__.fetchDriverOrdersFromAPI)(currentDriverId, page, {
-            status: currentOrderType === 'delivered' ? 'delivered' : 'all',
+            status: isDeliveryMode ? 'delivered' : 'all',
             perPage: ordersPerPageSelect.value,
             datePeriod: currentFilters.datePeriod
           });
         case 3:
           result = _context.v;
-          (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderOrdersTable)(ordersTableBody, result.data);
+          (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderOrdersTable)(ordersTableBody, result.data, columns);
           (0,_renderers_pagination_renderer_js__WEBPACK_IMPORTED_MODULE_2__.renderPagination)(ordersPagination, result.links, fetchOrders);
           (0,_renderers_pagination_renderer_js__WEBPACK_IMPORTED_MODULE_2__.renderPaginationInfo)(ordersPaginationInfo, result);
           _context.n = 5;
@@ -264,9 +284,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "renderOrdersTable": () => (/* binding */ renderOrdersTable)
 /* harmony export */ });
 function renderOrdersTable(tableBody, orders) {
+  var columns = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
+    showStatus: true,
+    showDeliveredDate: false
+  };
   tableBody.innerHTML = '';
+  var showStatus = columns.showStatus;
+  var showDeliveredDate = columns.showDeliveredDate;
   if (!orders || orders.length === 0) {
-    tableBody.innerHTML = "\n            <tr>\n                <td colspan=\"4\" class=\"text-muted text-center\">\n                    Nenhum pedido encontrado.\n                </td>\n            </tr>\n        ";
+    tableBody.innerHTML = "\n            <tr>\n                <td colspan=\"3\" class=\"text-muted text-center\">\n                    Nenhum pedido encontrado.\n                </td>\n            </tr>\n        ";
     return;
   }
   orders.forEach(function (order) {
@@ -275,19 +301,26 @@ function renderOrdersTable(tableBody, orders) {
     codeCell.textContent = order.code;
     var addressCell = document.createElement('td');
     addressCell.textContent = order.delivery_address;
-    var statusCell = document.createElement('td');
-    statusCell.textContent = order.status;
     row.appendChild(codeCell);
     row.appendChild(addressCell);
-    row.appendChild(statusCell);
+    if (showStatus) {
+      var statusCell = document.createElement('td');
+      statusCell.textContent = order.status;
+      row.appendChild(statusCell);
+    }
+    if (showDeliveredDate) {
+      var deliveredAtCell = document.createElement('td');
+      deliveredAtCell.textContent = order.delivered_at ? new Date(order.delivered_at).toLocaleString('pt-BR') : '-';
+      row.appendChild(deliveredAtCell);
+    }
     tableBody.appendChild(row);
   });
 }
 function renderLoading(tableBody) {
-  tableBody.innerHTML = "\n        <tr>\n            <td colspan=\"4\" class=\"text-muted text-center\">\n                Carregando...\n            </td>\n        </tr>\n    ";
+  tableBody.innerHTML = "\n        <tr>\n            <td colspan=\"3\" class=\"text-muted text-center\">\n                Carregando...\n            </td>\n        </tr>\n    ";
 }
 function renderError(tableBody, message) {
-  tableBody.innerHTML = "\n        <tr>\n            <td colspan=\"4\" class=\"text-danger text-center\">\n                ".concat(message, "\n            </td>\n        </tr>\n    ");
+  tableBody.innerHTML = "\n        <tr>\n            <td colspan=\"3\" class=\"text-danger text-center\">\n                ".concat(message, "\n            </td>\n        </tr>\n    ");
 }
 
 /***/ }),

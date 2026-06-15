@@ -32,10 +32,8 @@
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead>
-                            <tr class="border-top border-light-3 text-primary">
-                                <th scope="col">Código</th>
-                                <th scope="col">Endereço</th>
-                                <th scope="col">Status</th>
+                            <tr id="driverOrdersTableHead" class="border-top border-light-3 text-primary">
+
                             </tr>
                         </thead>
                         <tbody id="driverOrdersTableBody">
