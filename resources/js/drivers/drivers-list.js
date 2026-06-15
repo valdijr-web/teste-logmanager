@@ -2,6 +2,7 @@ import { fetchDriversFromAPI } from './api/drivers-api.js'
 import { renderTable, renderLoading, renderError } from './renderers/table-renderer.js'
 import { renderPagination, renderPaginationInfo } from './renderers/pagination-renderer.js'
 import { initDateRangePicker } from './renderers/date-picker-renderer.js'
+import { initDriverOrdersModal, openDriverOrdersModal } from './orders-modal.js'
 
 document.addEventListener('DOMContentLoaded', function () {
     const elements = {
@@ -21,6 +22,27 @@ document.addEventListener('DOMContentLoaded', function () {
         () => handleFetchDrivers(1),
         () => handleFetchDrivers(1)
     )
+
+    initDriverOrdersModal()
+
+    elements.tableBody.addEventListener('click', function (event) {
+        const button = event.target.closest('.js-driver-orders-link')
+
+        if (!button) {
+            return
+        }
+
+        event.preventDefault()
+
+        openDriverOrdersModal(
+            button.dataset.driverId,
+            button.dataset.driverName,
+            button.dataset.orderType,
+            {
+                datePeriod: elements.datePeriodInput.value,
+            }
+        )
+    })
 
     elements.refreshButton.addEventListener('click', () => handleFetchDrivers(1))
     elements.statusSelect.addEventListener('change', () => handleFetchDrivers(1))

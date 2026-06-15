@@ -105,6 +105,8 @@
     </div>
 </div>
 </div>
+
+@include('drivers.partials.orders-modal')
 @endsection
 
 @section('scripts')

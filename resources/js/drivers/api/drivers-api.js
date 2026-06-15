@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '../../app.js'
-import { parseDatePeriod } from '../utils/date-utils.js'
+import { buildParams } from '../utils/params-utils.js'
 
 export async function fetchDriversFromAPI(page, filters) {
     const params = buildParams(page, filters)
@@ -19,24 +19,20 @@ export async function fetchDriversFromAPI(page, filters) {
     return response.json()
 }
 
-function buildParams(page, filters) {
-    const params = new URLSearchParams()
+export async function fetchDriverOrdersFromAPI(driverId, page, filters) {
+    const params = buildParams(page, filters)
 
-    params.append('page', page)
-    params.append('per_page', filters.perPage)
+    const response = await fetch(`${API_BASE_URL}/orders/${driverId}?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
 
-    if (filters.status && filters.status !== 'all') {
-        params.append('status', filters.status)
+    if (!response.ok) {
+        throw new Error('Erro ao carregar pedidos do motorista.')
     }
 
-    const dates = parseDatePeriod(filters.datePeriod)
-    if (dates.startDate) {
-        params.append('start_date', dates.startDate)
-    }
-
-    if (dates.endDate) {
-        params.append('end_date', dates.endDate)
-    }
-
-    return params
+    return response.json()
 }

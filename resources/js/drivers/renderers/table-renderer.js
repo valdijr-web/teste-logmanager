@@ -19,14 +19,32 @@ export function renderTable(tableBody, drivers) {
             row.classList.add(driver.row_color)
         }
 
-        row.innerHTML = `
-            <td>${driver.name}</td>
-            <td>${driver.orders_count}</td>
-            <td>${driver.delivered_orders_count}</td>
-        `
+        const nameCell = document.createElement('td')
+        nameCell.textContent = driver.name
 
+        const ordersCell = document.createElement('td')
+        ordersCell.appendChild(createLink(driver, 'orders', driver.orders_count))
+
+        const deliveredCell = document.createElement('td')
+        deliveredCell.appendChild(createLink(driver, 'delivered', driver.delivered_orders_count))
+
+        row.appendChild(nameCell)
+        row.appendChild(ordersCell)
+        row.appendChild(deliveredCell)
         tableBody.appendChild(row)
     })
+}
+
+function createLink(driver, orderType, text) {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'btn btn-link p-0 js-driver-orders-link'
+    button.dataset.driverId = driver.id
+    button.dataset.driverName = driver.name
+    button.dataset.orderType = orderType
+    button.textContent = text
+
+    return button
 }
 
 export function renderLoading(tableBody) {
