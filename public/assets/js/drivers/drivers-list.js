@@ -555,7 +555,9 @@ function renderOrdersTable(tableBody, orders) {
     }
     if (showDeliveredDate) {
       var deliveredAtCell = document.createElement('td');
-      deliveredAtCell.textContent = order.delivered_at ? new Date(order.delivered_at).toLocaleString('pt-BR') : '-';
+      deliveredAtCell.textContent = order.delivered_at ? new Date(order.delivered_at).toLocaleString('pt-BR', {
+        timeZone: 'UTC'
+      }) : '-';
       row.appendChild(deliveredAtCell);
     }
     tableBody.appendChild(row);
