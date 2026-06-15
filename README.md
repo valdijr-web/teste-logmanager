@@ -1,64 +1,119 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# LOGMANAGER - Teste Técnico -  Dev.Valdi Geraldo
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este projeto é um teste técnico para a LOGMANAGER desenvolvido em Laravel. Ele implementa uma aplicação de gerenciamento de motoristas e pedidos, com foco em criação de dados fictícios, filtro de pedidos entregues e pendentes, filtro por perído de datas, e exibição de pedidos por motorista com opção de edição dos dados.
 
-## About Laravel
+## Instalação
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+1. Clone o repositório:
+   ```bash
+   git clone <repo-url>
+   cd teste-logmanager
+   ```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+2. Instale as dependências (recomendado via Docker)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+      Para evitar conflitos de versões do PHP, Composer e Node.js vamos utilizar o docker.
 
-## Learning Laravel
+      - Instale dependências PHP com um container temporário do Composer:
+         ```bash
+         docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/var/www/html -w /var/www/html composer:2 install --ignore-platform-reqs
+         ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+      Após executar os comandos acima você terá a pasta `vendor/` e poderá usar `./vendor/bin/sail` normalmente.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+      - Suba os containers (em background):
+         ```bash
+         ./vendor/bin/sail up -d
+         ```
 
-## Laravel Sponsors
+      - Instale dependências Node dentro do container:
+         ```bash
+         ./vendor/bin/sail npm install
+         ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+      - Crie o arquivo de ambiente a partir do exemplo e gere a chave da aplicação:
+         ```bash
+         cp .env.example .env
+         ./vendor/bin/sail artisan key:generate
+         ```
 
-### Premium Partners
+      - Rode migrations/seeders dentro do container:
+         ```bash
+         ./vendor/bin/sail artisan migrate:fresh --seed
+         ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+      - Compile os assets (modo desenvolvimento):
+         ```bash
+         ./vendor/bin/sail npm run dev
+         ```
 
-## Contributing
+3. Alternativa (sem Docker/Sail)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+      Caso não use Docker/Sail, instale localmente as dependências (atenção a versões do PHP/Composer/Node):
 
-## Code of Conduct
+      ```bash
+      composer install
+      npm install
+      cp .env.example .env
+      php artisan key:generate
+      php artisan migrate:fresh --seed
+      npm run dev
+      ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Execução
 
-## Security Vulnerabilities
+### Com Docker / Sail
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Inicie os containers:
+   ```bash
+   ./vendor/bin/sail up -d
+   ```
 
-## License
+2. Execute as migrations e seeders:
+   ```bash
+   ./vendor/bin/sail artisan migrate:fresh --seed
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+3. Execute o build de assets se necessário:
+   ```bash
+   ./vendor/bin/sail npm run dev
+   ```
+
+4. Acesse a aplicação:
+   ```text
+   http://localhost
+   ou
+   http://127.0.0.1:80
+   ```
+   A aplicação roda na porta `80` por padrão.
+
+### Sem Docker
+
+1. Inicie o servidor local do PHP:
+   ```bash
+   php artisan serve
+   ```
+
+2. Acesse a aplicação no navegador:
+   ```text
+   http://localhost
+   http://127.0.0.1:80
+   ```
+   A aplicação roda na porta `80` por padrão.
+
+## URL de acesso à funcionalidade desenvolvida
+
+A funcionalidade principal está disponível na rota raiz do projeto:
+
+```text
+http://localhost/
+```
+
+## Observações
+
+- O projeto utiliza PHP 7.4.3
+- O projeto utiliza Laravel 8.83.29 e Laravel Sail para execução em container.
+- Versão do NODE v18
+- Banco de dados Mysql
+- A funcionalidade desenvolvida exibe pedidos por motorista e permite filtrar pedidos entregues.
+- O seed de dados popula pedidos com timestamps consistentes para permitir testes de filtro por data.
