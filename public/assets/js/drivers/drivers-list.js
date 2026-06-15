@@ -25,7 +25,8 @@ var API_BASE_URL = 'http://localhost/api/v1';
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "fetchDriverOrdersFromAPI": () => (/* binding */ fetchDriverOrdersFromAPI),
-/* harmony export */   "fetchDriversFromAPI": () => (/* binding */ fetchDriversFromAPI)
+/* harmony export */   "fetchDriversFromAPI": () => (/* binding */ fetchDriversFromAPI),
+/* harmony export */   "updateOrderOnAPI": () => (/* binding */ updateOrderOnAPI)
 /* harmony export */ });
 /* harmony import */ var _app_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../app.js */ "./resources/js/app.js");
 /* harmony import */ var _utils_params_utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/params-utils.js */ "./resources/js/drivers/utils/params-utils.js");
@@ -99,6 +100,46 @@ function _fetchDriverOrdersFromAPI() {
   }));
   return _fetchDriverOrdersFromAPI.apply(this, arguments);
 }
+function updateOrderOnAPI(_x6, _x7) {
+  return _updateOrderOnAPI.apply(this, arguments);
+}
+function _updateOrderOnAPI() {
+  _updateOrderOnAPI = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(orderId, payload) {
+    var response, errorPayload, errorMessage;
+    return _regenerator().w(function (_context3) {
+      while (1) switch (_context3.n) {
+        case 0:
+          _context3.n = 1;
+          return fetch("".concat(_app_js__WEBPACK_IMPORTED_MODULE_0__.API_BASE_URL, "/orders/").concat(orderId), {
+            method: 'PUT',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
+          });
+        case 1:
+          response = _context3.v;
+          if (response.ok) {
+            _context3.n = 3;
+            break;
+          }
+          _context3.n = 2;
+          return response.json()["catch"](function () {
+            return null;
+          });
+        case 2:
+          errorPayload = _context3.v;
+          errorMessage = (errorPayload === null || errorPayload === void 0 ? void 0 : errorPayload.message) || 'Erro ao salvar alterações do pedido.';
+          throw new Error(errorMessage);
+        case 3:
+          return _context3.a(2, response.json());
+      }
+    }, _callee3);
+  }));
+  return _updateOrderOnAPI.apply(this, arguments);
+}
 
 /***/ }),
 
@@ -130,10 +171,14 @@ var ordersTableBody = document.getElementById('driverOrdersTableBody');
 var ordersPagination = document.getElementById('driverOrdersPagination');
 var ordersPaginationInfo = document.getElementById('driverOrdersPaginationInfo');
 var ordersPerPageSelect = document.getElementById('driverOrdersPerPage');
+var ordersModalFooter = ordersModal === null || ordersModal === void 0 ? void 0 : ordersModal.querySelector('.modal-footer');
 var currentDriverId = null;
 var currentOrderType = 'orders';
 var currentFilters = {};
 var currentPage = 1;
+var currentOrders = [];
+var currentEditOrder = null;
+var ORDERS_TABLE_COLUMN_COUNT = 3;
 function initDriverOrdersModal() {
   if (!ordersModal) {
     return;
@@ -141,10 +186,18 @@ function initDriverOrdersModal() {
   ordersPerPageSelect.addEventListener('change', function () {
     return fetchOrders(1);
   });
+  ordersTableBody.addEventListener('click', handleOrdersTableClick);
+  ordersTableBody.addEventListener('input', handleOrdersTableInput);
+  ordersTableBody.addEventListener('change', handleOrdersTableChange);
+  ordersModal.addEventListener('click', handleModalFooterClick);
   ordersModal.addEventListener('show.bs.modal', function () {
     if (currentDriverId) {
       fetchOrders(1);
     }
+  });
+  ordersModal.addEventListener('hidden.bs.modal', function () {
+    currentEditOrder = null;
+    renderModalFooter();
   });
 }
 function openDriverOrdersModal(driverId, driverName, orderType) {
@@ -153,6 +206,8 @@ function openDriverOrdersModal(driverId, driverName, orderType) {
   currentOrderType = orderType;
   currentFilters = filters;
   currentPage = 1;
+  currentOrders = [];
+  currentEditOrder = null;
   var isDeliveryMode = orderType === 'delivered';
   var columns = {
     showStatus: !isDeliveryMode,
@@ -160,6 +215,7 @@ function openDriverOrdersModal(driverId, driverName, orderType) {
   };
   ordersModalTitle.textContent = isDeliveryMode ? "Entregas de ".concat(driverName) : "Pedidos de ".concat(driverName);
   setOrdersTableHeader(columns);
+  renderModalFooter();
   var modal = new bootstrap.Modal(ordersModal);
   modal.show();
 }
@@ -169,56 +225,190 @@ function setOrdersTableHeader(columns) {
   }
   ordersTableHead.innerHTML = "\n        <th scope=\"col\">C\xF3digo</th>\n        <th scope=\"col\">Endere\xE7o</th>\n        ".concat(columns.showStatus ? '<th scope="col">Status</th>' : '', "\n        ").concat(columns.showDeliveredDate ? '<th scope="col">Entregue em</th>' : '', "\n    ");
 }
-function fetchOrders() {
-  return _fetchOrders.apply(this, arguments);
+function handleOrdersTableClick(event) {
+  var editButton = event.target.closest('.js-order-edit-button');
+  var statusToggle = event.target.closest('.js-order-status-toggle');
+  if (editButton) {
+    event.preventDefault();
+    startOrderEdit(editButton.dataset.orderId, {
+      editAddress: true,
+      editStatus: false
+    });
+    return;
+  }
+  if (statusToggle) {
+    event.preventDefault();
+    startOrderEdit(statusToggle.dataset.orderId, {
+      editAddress: false,
+      editStatus: true
+    });
+  }
 }
-function _fetchOrders() {
-  _fetchOrders = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-    var page,
-      isDeliveryMode,
-      columns,
-      result,
-      _args = arguments,
-      _t;
+function handleModalFooterClick(event) {
+  var saveButton = event.target.closest('.js-order-save-button');
+  var cancelButton = event.target.closest('.js-order-cancel-button');
+  if (saveButton) {
+    event.preventDefault();
+    saveOrderChanges();
+    return;
+  }
+  if (cancelButton) {
+    event.preventDefault();
+    cancelOrderEdit();
+  }
+}
+function handleOrdersTableInput(event) {
+  var input = event.target.closest('.js-order-address-input');
+  if (!input || !currentEditOrder) {
+    return;
+  }
+  currentEditOrder.delivery_address = input.value;
+}
+function handleOrdersTableChange(event) {
+  var select = event.target.closest('.js-order-status-select');
+  if (!select || !currentEditOrder) {
+    return;
+  }
+  currentEditOrder.status = select.value;
+}
+function startOrderEdit(orderId) {
+  var editOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+    editAddress: true,
+    editStatus: false
+  };
+  var order = currentOrders.find(function (item) {
+    return String(item.id) === String(orderId);
+  });
+  if (!order) {
+    return;
+  }
+  currentEditOrder = {
+    id: order.id,
+    delivery_address: order.delivery_address,
+    status: order.status,
+    editAddress: Boolean(editOptions.editAddress),
+    editStatus: Boolean(editOptions.editStatus)
+  };
+  (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderOrdersTable)(ordersTableBody, currentOrders, getColumns(), currentEditOrder);
+  renderModalFooter();
+}
+function cancelOrderEdit() {
+  currentEditOrder = null;
+  (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderOrdersTable)(ordersTableBody, currentOrders, getColumns(), null);
+  renderModalFooter();
+}
+function saveOrderChanges() {
+  return _saveOrderChanges.apply(this, arguments);
+}
+function _saveOrderChanges() {
+  _saveOrderChanges = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+    var _t;
     return _regenerator().w(function (_context) {
       while (1) switch (_context.p = _context.n) {
         case 0:
-          page = _args.length > 0 && _args[0] !== undefined ? _args[0] : 1;
-          if (currentDriverId) {
+          if (currentEditOrder) {
             _context.n = 1;
             break;
           }
           return _context.a(2);
         case 1:
-          currentPage = page;
-          isDeliveryMode = currentOrderType === 'delivered';
-          columns = {
-            showStatus: !isDeliveryMode,
-            showDeliveredDate: isDeliveryMode
-          };
-          (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderLoading)(ordersTableBody);
+          if (!(!currentEditOrder.delivery_address || !currentEditOrder.delivery_address.trim())) {
+            _context.n = 2;
+            break;
+          }
+          return _context.a(2);
+        case 2:
           _context.p = 2;
           _context.n = 3;
+          return (0,_api_drivers_api_js__WEBPACK_IMPORTED_MODULE_0__.updateOrderOnAPI)(currentEditOrder.id, {
+            delivery_address: currentEditOrder.delivery_address,
+            status: currentEditOrder.status
+          });
+        case 3:
+          currentEditOrder = null;
+          _context.n = 4;
+          return fetchOrders(currentPage);
+        case 4:
+          _context.n = 6;
+          break;
+        case 5:
+          _context.p = 5;
+          _t = _context.v;
+          (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderError)(ordersTableBody, _t.message, ORDERS_TABLE_COLUMN_COUNT);
+        case 6:
+          return _context.a(2);
+      }
+    }, _callee, null, [[2, 5]]);
+  }));
+  return _saveOrderChanges.apply(this, arguments);
+}
+function renderModalFooter() {
+  if (!ordersModalFooter) {
+    return;
+  }
+  if (!currentEditOrder) {
+    ordersModalFooter.innerHTML = '';
+    return;
+  }
+  ordersModalFooter.innerHTML = "\n        <div class=\"d-flex justify-content-between align-items-center w-100\">\n            <button type=\"button\" class=\"btn btn-light js-order-cancel-button border\">\n                Cancelar\n            </button>\n            <button type=\"button\" class=\"btn btn-primary js-order-save-button\">\n                Salvar Altera\xE7\xF5es\n            </button>\n        </div>\n    ";
+}
+function getColumns() {
+  var isDeliveryMode = currentOrderType === 'delivered';
+  return {
+    showStatus: !isDeliveryMode,
+    showDeliveredDate: isDeliveryMode
+  };
+}
+function fetchOrders() {
+  return _fetchOrders.apply(this, arguments);
+}
+function _fetchOrders() {
+  _fetchOrders = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+    var page,
+      columns,
+      result,
+      _args2 = arguments,
+      _t2;
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.p = _context2.n) {
+        case 0:
+          page = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : 1;
+          if (currentDriverId) {
+            _context2.n = 1;
+            break;
+          }
+          return _context2.a(2);
+        case 1:
+          currentPage = page;
+          columns = getColumns();
+          (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderLoading)(ordersTableBody, ORDERS_TABLE_COLUMN_COUNT);
+          _context2.p = 2;
+          _context2.n = 3;
           return (0,_api_drivers_api_js__WEBPACK_IMPORTED_MODULE_0__.fetchDriverOrdersFromAPI)(currentDriverId, page, {
-            status: isDeliveryMode ? 'delivered' : 'all',
+            status: currentOrderType === 'delivered' ? 'delivered' : 'all',
             perPage: ordersPerPageSelect.value,
             datePeriod: currentFilters.datePeriod
           });
         case 3:
-          result = _context.v;
-          (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderOrdersTable)(ordersTableBody, result.data, columns);
+          result = _context2.v;
+          currentOrders = result.data || [];
+          currentEditOrder = currentEditOrder && currentOrders.some(function (item) {
+            return item.id === currentEditOrder.id;
+          }) ? currentEditOrder : null;
+          (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderOrdersTable)(ordersTableBody, currentOrders, columns, currentEditOrder);
           (0,_renderers_pagination_renderer_js__WEBPACK_IMPORTED_MODULE_2__.renderPagination)(ordersPagination, result.links, fetchOrders);
           (0,_renderers_pagination_renderer_js__WEBPACK_IMPORTED_MODULE_2__.renderPaginationInfo)(ordersPaginationInfo, result);
-          _context.n = 5;
+          renderModalFooter();
+          _context2.n = 5;
           break;
         case 4:
-          _context.p = 4;
-          _t = _context.v;
-          (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderError)(ordersTableBody, _t.message);
+          _context2.p = 4;
+          _t2 = _context2.v;
+          (0,_renderers_orders_table_renderer_js__WEBPACK_IMPORTED_MODULE_1__.renderError)(ordersTableBody, _t2.message, ORDERS_TABLE_COLUMN_COUNT);
         case 5:
-          return _context.a(2);
+          return _context2.a(2);
       }
-    }, _callee, null, [[2, 4]]);
+    }, _callee2, null, [[2, 4]]);
   }));
   return _fetchOrders.apply(this, arguments);
 }
@@ -283,29 +473,84 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "renderLoading": () => (/* binding */ renderLoading),
 /* harmony export */   "renderOrdersTable": () => (/* binding */ renderOrdersTable)
 /* harmony export */ });
+var ORDER_STATUS_OPTIONS = [{
+  value: 'Pendente',
+  label: 'Pendente'
+}, {
+  value: 'Entregue',
+  label: 'Entregue'
+}];
 function renderOrdersTable(tableBody, orders) {
   var columns = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
     showStatus: true,
     showDeliveredDate: false
   };
+  var editOrder = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
   tableBody.innerHTML = '';
   var showStatus = columns.showStatus;
   var showDeliveredDate = columns.showDeliveredDate;
+  var columnCount = 2 + (showStatus ? 1 : 0) + (showDeliveredDate ? 1 : 0);
   if (!orders || orders.length === 0) {
-    tableBody.innerHTML = "\n            <tr>\n                <td colspan=\"3\" class=\"text-muted text-center\">\n                    Nenhum pedido encontrado.\n                </td>\n            </tr>\n        ";
+    tableBody.innerHTML = "\n            <tr>\n                <td colspan=\"".concat(columnCount, "\" class=\"text-muted text-center\">\n                    Nenhum pedido encontrado.\n                </td>\n            </tr>\n        ");
     return;
   }
   orders.forEach(function (order) {
     var row = document.createElement('tr');
+    var isEditing = editOrder && Number(editOrder.id) === Number(order.id);
     var codeCell = document.createElement('td');
     codeCell.textContent = order.code;
-    var addressCell = document.createElement('td');
-    addressCell.textContent = order.delivery_address;
     row.appendChild(codeCell);
+    var addressCell = document.createElement('td');
+    var isEditingAddress = isEditing && (editOrder === null || editOrder === void 0 ? void 0 : editOrder.editAddress);
+    if (isEditingAddress) {
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'form-control form-control js-order-address-input';
+      input.dataset.orderId = order.id;
+      input.value = editOrder.delivery_address || order.delivery_address;
+      addressCell.appendChild(input);
+    } else {
+      var addressText = document.createElement('span');
+      addressText.textContent = order.delivery_address;
+      addressText.className = 'me-2';
+      var editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'btn btn-link btn-sm p-0 align-baseline js-order-edit-button';
+      editButton.dataset.orderId = order.id;
+      editButton.title = 'Editar endereço';
+      editButton.innerHTML = "\n                <img src=\"/assets/img/icons/edit-3.svg\" width=\"16\" height=\"16\" alt=\"Editar\" />\n            ";
+      addressCell.appendChild(addressText);
+      addressCell.appendChild(editButton);
+    }
     row.appendChild(addressCell);
     if (showStatus) {
       var statusCell = document.createElement('td');
-      statusCell.textContent = order.status;
+      var isEditingStatus = isEditing && (editOrder === null || editOrder === void 0 ? void 0 : editOrder.editStatus);
+      if (isEditingStatus) {
+        var statusSelect = document.createElement('select');
+        statusSelect.className = 'form-select form-select js-order-status-select';
+        statusSelect.dataset.orderId = order.id;
+        ORDER_STATUS_OPTIONS.forEach(function (statusOption) {
+          var option = document.createElement('option');
+          option.value = statusOption.value;
+          option.textContent = statusOption.label;
+          option.selected = ((editOrder === null || editOrder === void 0 ? void 0 : editOrder.status) || order.status) === statusOption.value;
+          statusSelect.appendChild(option);
+        });
+        statusCell.appendChild(statusSelect);
+      } else {
+        var statusText = document.createElement('span');
+        statusText.textContent = order.status;
+        statusText.className = 'me-2';
+        var statusToggle = document.createElement('button');
+        statusToggle.type = 'button';
+        statusToggle.className = 'btn btn-link btn-sm p-0 align-baseline js-order-status-toggle';
+        statusToggle.dataset.orderId = order.id;
+        statusToggle.title = 'Editar status';
+        statusToggle.innerHTML = "\n                    <svg width=\"16\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><path d=\"M15 8l-4.03 6L7 8h8z\" fill=\"currentColor\"/></svg>\n                ";
+        statusCell.appendChild(statusText);
+        statusCell.appendChild(statusToggle);
+      }
       row.appendChild(statusCell);
     }
     if (showDeliveredDate) {
@@ -317,10 +562,12 @@ function renderOrdersTable(tableBody, orders) {
   });
 }
 function renderLoading(tableBody) {
-  tableBody.innerHTML = "\n        <tr>\n            <td colspan=\"3\" class=\"text-muted text-center\">\n                Carregando...\n            </td>\n        </tr>\n    ";
+  var columnCount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
+  tableBody.innerHTML = "\n        <tr>\n            <td colspan=\"".concat(columnCount, "\" class=\"text-muted text-center\">\n                Carregando...\n            </td>\n        </tr>\n    ");
 }
 function renderError(tableBody, message) {
-  tableBody.innerHTML = "\n        <tr>\n            <td colspan=\"3\" class=\"text-danger text-center\">\n                ".concat(message, "\n            </td>\n        </tr>\n    ");
+  var columnCount = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 3;
+  tableBody.innerHTML = "\n        <tr>\n            <td colspan=\"".concat(columnCount, "\" class=\"text-danger text-center\">\n                ").concat(message, "\n            </td>\n        </tr>\n    ");
 }
 
 /***/ }),

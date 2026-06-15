@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Orders\GetOrdersByIdDriverAction;
+use App\Actions\Orders\UpdateOrderAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Driver;
+use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-     public function ordersByDriver(Request $request, Driver $driver, GetOrdersByIdDriverAction $action): JsonResponse
+    public function ordersByDriver(Request $request, Driver $driver, GetOrdersByIdDriverAction $action): JsonResponse
     {
         $orders = $action->execute($driver->id, [
             'status' => $request->input('status', 'all'),
@@ -21,5 +24,17 @@ class OrderController extends Controller
         ]);
 
         return response()->json($orders);
+    }
+
+    public function update(UpdateOrderRequest $request, Order $order, UpdateOrderAction $action): JsonResponse
+    {
+        $validated = $request->validated();
+
+        $order = $action->execute($order, $validated);
+
+        return response()->json([
+            'message' => 'Pedido atualizado com sucesso.',
+            'data' => $order,
+        ]);
     }
 }

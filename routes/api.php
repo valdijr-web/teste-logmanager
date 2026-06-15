@@ -23,4 +23,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('v1')->group(function () {
     Route::get('drivers', [DriverController::class, 'index']);
     Route::get('orders/{driver}', [OrderController::class, 'ordersByDriver']);
+    Route::put('orders/{order}', [OrderController::class, 'update']);
 });

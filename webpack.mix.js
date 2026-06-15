@@ -15,4 +15,5 @@ mix.js('resources/js/app.js', 'public/assets/js')
     .js('resources/js/drivers/drivers-list.js', 'public/assets/js/drivers')
     .postCss('resources/css/app.css', 'public/assets/css', [
         //
-    ]);
+    ])
+    .copyDirectory('resources/img', 'public/assets/img');
