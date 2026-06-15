@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\V1\DriverMonitoringController;
+use App\Http\Controllers\Api\V1\DriverController;
+use App\Http\Controllers\Api\V1\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,5 +21,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('v1')->group(function () {
-    Route::get('drivers', [DriverMonitoringController::class, 'index']);
+    Route::get('drivers', [DriverController::class, 'index']);
+    Route::get('orders/{driver}', [OrderController::class, 'ordersByDriver']);
 });

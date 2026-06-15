@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Actions\Monitoring;
+namespace App\Actions\Drivers;
 
 use App\Models\Driver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
-class GetDriversMonitoringAction
+class GetDriversAction
 {
     public function execute(array $filters = []): LengthAwarePaginator
     {

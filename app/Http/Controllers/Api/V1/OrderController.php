@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Actions\Monitoring\GetDriversMonitoringAction;
+use App\Actions\Orders\GetOrdersByIdDriverAction;
 use App\Http\Controllers\Controller;
+use App\Models\Driver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class DriverMonitoringController extends Controller
+class OrderController extends Controller
 {
-    public function index(Request $request, GetDriversMonitoringAction $action): JsonResponse
+     public function ordersByDriver(Request $request, Driver $driver, GetOrdersByIdDriverAction $action): JsonResponse
     {
-        $drivers = $action->execute([
+        $orders = $action->execute($driver->id, [
+            'status' => $request->input('status', 'all'),
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
-            'status' => $request->input('status', 'all'),
             'per_page' => $request->input('per_page', 10),
             'page' => $request->input('page'),
         ]);
 
-        return response()->json($drivers);
+        return response()->json($orders);
     }
 }
